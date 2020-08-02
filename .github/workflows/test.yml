@@ -1,0 +1,102 @@
+name: Test GitHub Packages
+on: [workflow_dispatch]
+jobs:
+  # ===================================================================================================================
+  # Publish Job
+  # ===================================================================================================================
+  publish:
+    name: Publish Packages @ 0.0.${{ github.run_number }}
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: false
+    steps:
+      # ----------------------------------------------------------------------- Checkout
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # ----------------------------------------------------------------------- Setup Tools
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+
+      # ----------------------------------------------------------------------- Configure NuGet
+      # We use this script instead of the setup-dotnet settings so that this workflow is owner-agnostic and as such can run in forks.
+      # (We can't use github.repository_owner with source-url because it must be all lowercase.)
+      - name: Configure NuGet
+        run: python .github/workflows/make-nuget-config.py
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ github.token }}
+
+      # ----------------------------------------------------------------------- Build Packages
+      - name: Build Packages
+        run: dotnet pack /p:CiVersion=0.0.${{ github.run_number }}
+
+      - name: List built packages
+        run: ls packages/
+
+      # ----------------------------------------------------------------------- Push Packages
+      - name: Push Packages
+        run: dotnet nuget push "*.nupkg" --source=github
+        working-directory: packages
+        env:
+          # This is a workaround for https://github.com/NuGet/Home/issues/9775
+          DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER: 0
+
+  # ===================================================================================================================
+  # Restore Job
+  # ===================================================================================================================
+  restore:
+    name: Restore ${{ matrix.package }} @ 0.0.${{ github.run_number }}${{ matrix.version-suffix }}
+    needs: publish
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [PackageWithoutBuildMetadata, PackageWithBuildMetadata]
+        version-suffix: ['', '+BuildMetadata']
+    runs-on: ubuntu-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: false
+    steps:
+      # ----------------------------------------------------------------------- Checkout
+      # (We need to checkout for the make-nuget-config.py script)
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # ----------------------------------------------------------------------- Setup Tools
+      - name: Setup Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+
+      # ----------------------------------------------------------------------- Configure NuGet
+      # We use this script instead of the setup-dotnet settings so that this workflow is owner-agnostic and as such can run in forks.
+      # (We can't use github.repository_owner with source-url because it must be all lowercase.)
+      - name: Configure NuGet
+        run: python .github/workflows/make-nuget-config.py
+        env:
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ github.token }}
+      
+      # ----------------------------------------------------------------------- Create Project
+      - name: Create Project
+        run: dotnet new console
+
+      # ----------------------------------------------------------------------- Install Package
+      - name: Install Package
+        run: dotnet add package ${{ matrix.package }} --version 0.0.${{ github.run_number }}${{ matrix.version-suffix }}

@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Note that some properties are defined in Directory.Build.props in the repo root -->
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Version>$(Version)+BuildMetadata</Version>
+  </PropertyGroup>
+</Project>
