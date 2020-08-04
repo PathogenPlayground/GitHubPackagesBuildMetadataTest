@@ -1,5 +1,10 @@
 name: Test GitHub Packages
 on: [workflow_dispatch,push]
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_GENERATE_ASPNET_CERTIFICATE: false
+  source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
 jobs:
   # ===================================================================================================================
   # Publish Job
@@ -7,11 +12,6 @@ jobs:
   publish:
     name: Publish Packages @ 0.0.${{ github.run_number }}
     runs-on: ubuntu-latest
-    env:
-      DOTNET_NOLOGO: true
-      DOTNET_CLI_TELEMETRY_OPTOUT: true
-      DOTNET_GENERATE_ASPNET_CERTIFICATE: false
-      source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
     steps:
       # ----------------------------------------------------------------------- Checkout
       - name: Checkout
@@ -59,10 +59,6 @@ jobs:
         package: [PackageWithoutBuildMetadata, PackageWithBuildMetadata]
         version-suffix: ['', '+BuildMetadata']
     runs-on: ubuntu-latest
-    env:
-      DOTNET_NOLOGO: true
-      DOTNET_CLI_TELEMETRY_OPTOUT: true
-      DOTNET_GENERATE_ASPNET_CERTIFICATE: false
     steps:
       # ----------------------------------------------------------------------- Checkout
       # (We need to checkout for the make-nuget-config.py script)
@@ -79,15 +75,9 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.x
-
-      # ----------------------------------------------------------------------- Configure NuGet
-      # We use this script instead of the setup-dotnet settings so that this workflow is owner-agnostic and as such can run in forks.
-      # (We can't use github.repository_owner with source-url because it must be all lowercase.)
-      - name: Configure NuGet
-        run: python .github/workflows/make-nuget-config.py
+          source-url: ${{ env.source-url }}
         env:
-          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-          GITHUB_TOKEN: ${{ github.token }}
+          NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
       
       # ----------------------------------------------------------------------- Create Project
       - name: Create Project
@@ -96,4 +86,5 @@ jobs:
       # ----------------------------------------------------------------------- Install Package
       - name: Install Package
         run: dotnet add package ${{ matrix.package }} --version 0.0.${{ github.run_number }}${{ matrix.version-suffix }}
-        
+        env:
+          NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
