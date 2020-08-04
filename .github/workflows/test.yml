@@ -11,6 +11,7 @@ jobs:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
       DOTNET_GENERATE_ASPNET_CERTIFICATE: false
+      source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
     steps:
       # ----------------------------------------------------------------------- Checkout
       - name: Checkout
@@ -26,15 +27,9 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.x
-
-      # ----------------------------------------------------------------------- Configure NuGet
-      # We use this script instead of the setup-dotnet settings so that this workflow is owner-agnostic and as such can run in forks.
-      # (We can't use github.repository_owner with source-url because it must be all lowercase.)
-      - name: Configure NuGet
-        run: python .github/workflows/make-nuget-config.py
+          source-url: ${{ env.source-url }}
         env:
-          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-          GITHUB_TOKEN: ${{ github.token }}
+          NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
 
       # ----------------------------------------------------------------------- Build Packages
       - name: Build Packages
@@ -50,6 +45,7 @@ jobs:
         env:
           # This is a workaround for https://github.com/NuGet/Home/issues/9775
           DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER: 0
+          NUGET_AUTH_TOKEN: ${{ github.token }}
 
   # ===================================================================================================================
   # Restore Job
