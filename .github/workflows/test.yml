@@ -38,7 +38,7 @@ jobs:
 
       # ----------------------------------------------------------------------- Build Packages
       - name: Build Packages
-        run: dotnet pack /p:CiVersion=0.0.${{ github.run_number }}
+        run: dotnet pack /p:CiVersion=0.0.${{ github.run_number }} /p:RepositoryUrl=https://github.com/${{ github.repository }}
 
       - name: List built packages
         run: ls packages/
