@@ -100,3 +100,4 @@ jobs:
       # ----------------------------------------------------------------------- Install Package
       - name: Install Package
         run: dotnet add package ${{ matrix.package }} --version 0.0.${{ github.run_number }}${{ matrix.version-suffix }}
+        
