@@ -40,7 +40,7 @@ jobs:
 
       # ----------------------------------------------------------------------- Push Packages
       - name: Push Packages
-        run: dotnet nuget push "*.nupkg" --source=github
+        run: dotnet nuget push "*.nupkg" --source=${{ env.source-url }}
         working-directory: packages
         env:
           # This is a workaround for https://github.com/NuGet/Home/issues/9775
