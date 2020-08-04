@@ -4,7 +4,8 @@ env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_GENERATE_ASPNET_CERTIFICATE: false
-  source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+  SOURCE_URL: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+  REPOSITORY_URL: https://github.com/${{ github.repository }}
 jobs:
   # ===================================================================================================================
   # Publish Job
@@ -22,20 +23,20 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: 3.1.x
-          source-url: ${{ env.source-url }}
+          source-url: ${{ env.SOURCE_URL }}
         env:
           NUGET_AUTH_TOKEN: '%NUGET_AUTH_TOKEN%'
 
       # ----------------------------------------------------------------------- Build Packages
       - name: Build Packages
-        run: dotnet pack /p:CiVersion=0.0.${{ github.run_number }} /p:RepositoryUrl=https://github.com/${{ github.repository }}
+        run: dotnet pack /p:CiVersion=0.0.${{ github.run_number }} /p:RepositoryUrl=${{ env.REPOSITORY_URL }}
 
       - name: List built packages
         run: ls packages/
 
       # ----------------------------------------------------------------------- Push Packages
       - name: Push Packages
-        run: dotnet nuget push "*.nupkg" --source=${{ env.source-url }}
+        run: dotnet nuget push "*.nupkg" --source=${{ env.SOURCE_URL }}
         working-directory: packages
         env:
           # This is a workaround for https://github.com/NuGet/Home/issues/9775
