@@ -11,7 +11,7 @@ jobs:
   # Publish Job
   # ===================================================================================================================
   publish:
-    name: Publish Packages @ 0.0.${{ github.run_number }}
+    name: Publish Packages @ 1.0.${{ github.run_number }}
     runs-on: ubuntu-latest
     steps:
       # ----------------------------------------------------------------------- Checkout
@@ -29,7 +29,7 @@ jobs:
 
       # ----------------------------------------------------------------------- Build Packages
       - name: Build Packages
-        run: dotnet pack /p:CiVersion=0.0.${{ github.run_number }} /p:RepositoryUrl=${{ env.REPOSITORY_URL }}
+        run: dotnet pack /p:CiVersion=1.0.${{ github.run_number }} /p:RepositoryUrl=${{ env.REPOSITORY_URL }}
 
       - name: List built packages
         run: ls packages/
@@ -40,14 +40,14 @@ jobs:
 
       # ----------------------------------------------------------------------- Push Packages
       - name: Push Packages
-        run: gpr push "*.nupkg" --version 0.0.${{ github.run_number }} --api-key ${{ github.token }}
+        run: gpr push "*.nupkg" --version 1.0.${{ github.run_number }} --api-key ${{ github.token }}
         working-directory: packages
 
   # ===================================================================================================================
   # Restore Job
   # ===================================================================================================================
   restore:
-    name: Restore ${{ matrix.package }} @ 0.0.${{ github.run_number }}${{ matrix.version-suffix }}
+    name: Restore ${{ matrix.package }} @ 1.0.${{ github.run_number }}${{ matrix.version-suffix }}
     needs: publish
     strategy:
       fail-fast: false
@@ -71,6 +71,6 @@ jobs:
 
       # ----------------------------------------------------------------------- Install Package
       - name: Install Package
-        run: dotnet add package ${{ matrix.package }} --version 0.0.${{ github.run_number }}${{ matrix.version-suffix }}
+        run: dotnet add package ${{ matrix.package }} --version 1.0.${{ github.run_number }}${{ matrix.version-suffix }}
         env:
           NUGET_AUTH_TOKEN: ${{ github.token }}
