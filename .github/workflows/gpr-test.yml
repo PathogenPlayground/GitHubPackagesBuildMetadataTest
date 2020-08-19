@@ -1,4 +1,4 @@
-name: Test GitHub Packages
+name: Test GitHub Packages (With gpr push)
 on: [workflow_dispatch]
 env:
   DOTNET_NOLOGO: true
@@ -34,14 +34,14 @@ jobs:
       - name: List built packages
         run: ls packages/
 
+      # ----------------------------------------------------------------------- Install gpr dotnet global tool
+      - name: Install gpr dotnet global tool
+        run: dotnet tool update gpr --global
+
       # ----------------------------------------------------------------------- Push Packages
       - name: Push Packages
-        run: dotnet nuget push "*.nupkg" --source=${{ env.SOURCE_URL }}
+        run: gpr push "*.nupkg" --version 0.0.${{ github.run_number }} --api-key ${{ github.token }}
         working-directory: packages
-        env:
-          # This is a workaround for https://github.com/NuGet/Home/issues/9775
-          DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER: 0
-          NUGET_AUTH_TOKEN: ${{ github.token }}
 
   # ===================================================================================================================
   # Restore Job
