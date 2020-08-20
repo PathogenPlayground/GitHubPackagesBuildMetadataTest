@@ -33,11 +33,11 @@ jobs:
 
       # ----------------------------------------------------------------------- Install gpr dotnet global tool
       - name: Install gpr dotnet global tool
-        run: dotnet tool update gpr --global
+        run: dotnet tool update gpr --version 0.1.237-gadc903af74 --global
 
       # ----------------------------------------------------------------------- Push Packages
       - name: Push Packages
-        run: gpr push "*.nupkg" --version 1.0.${{ github.run_number }} --api-key ${{ github.token }}
+        run: gpr push "*.nupkg" --api-key ${{ github.token }}
         working-directory: packages
 
   # ===================================================================================================================
