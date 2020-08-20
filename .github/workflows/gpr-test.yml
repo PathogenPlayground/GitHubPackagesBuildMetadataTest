@@ -37,7 +37,7 @@ jobs:
 
       # ----------------------------------------------------------------------- Push Packages
       - name: Push Packages
-        run: gpr push "*.nupkg" --api-key ${{ github.token }}
+        run: gpr push "*.nupkg" --version 1.1.${{ github.run_number }} --api-key ${{ github.token }}
         working-directory: packages
 
   # ===================================================================================================================
